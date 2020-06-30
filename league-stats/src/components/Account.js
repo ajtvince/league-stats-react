@@ -4,12 +4,14 @@ import ReactDOM from 'react-dom';
 import SummonerPage from '../components/SummonerPage';
 import { useEffect, useState } from 'react';
 
-let apikey = "?api_key=RGAPI-e523626e-6c8c-4fdf-a17f-466f4b06abc4";
+let apikey = "?api_key=RGAPI-f9bb6b8b-e871-44e4-aa5d-6c8ab910ef6d";
+let summoner_name;
 
 //set url param
 function Account() {
   
     let { accountID } = useParams();
+    summoner_name = accountID;
 
     return (
         <div onClick={getSummonerInfo(accountID)}>loading...</div>
@@ -27,16 +29,63 @@ async function getMatches(props, startNum) {
     let last10 = [];
 
     let matchData;
-    let matchTimeline;
+    let matchesWR = [];
+
+    let winsVs = [];
+    let lossVs = [];
 
 
-    for(let i=0; i<10; i++) {
+    for(let i=0; i<25; i++) {
         await fetch(url + props.matches[i].gameId + apikey)
             .then(resp => resp.json())
             .then(data => {
                 matchData = data;
-                console.log('Get matches: ' + data.seasonId);
+                //console.log('Get matches: ' + data.teams[0].win);
         });
+
+
+        for(let i=0; i<10; i++) {
+            //console.log(matchData.participantIdentities[i].player.summonerName);
+            if (matchData.participantIdentities[i].player.summonerName === summoner_name) {
+                console.log("name is same");
+                console.log("team is " + matchData.participants[i].teamId)
+                //get team id of player searched
+                let teamId;
+                let enemyTeamId;
+                if (matchData.participants[i].teamId === 100) {
+                    teamId = 0;
+                    enemyTeamId = 1;
+                } else {
+                    teamId = 1;
+                    enemyTeamId = 0;
+                }
+                console.log("did team win: " + matchData.teams[teamId].win);
+                //get enemy team id
+                let enemyTeam;
+                if(teamId === 0) {
+                    enemyTeam = 200;
+                } else {
+                    enemyTeam = 100;
+                }
+
+                //get champions on enemy team and determine if loss or win
+                for (let i=0; i<10; i++) {
+                    if (matchData.participants[i].teamId === enemyTeam && matchData.teams[teamId].win === "Win") {
+                        console.log("player won vs " + matchData.participants[i].championId + " on team " + enemyTeam);
+                        winsVs.push(matchData.participants[i].championId);
+                    } else if (matchData.participants[i].teamId === enemyTeam && matchData.teams[teamId].win === "Fail") {
+                        console.log("player lost vs " + matchData.participants[i].championId + " on team " + enemyTeam);
+                        lossVs.push(matchData.participants[i].championId);
+                    }
+                }
+
+                
+
+            }
+        }
+
+        //console.log(matchesWR);
+
         /*
         await fetch(url2 + props.matches[i].gameId + apikey)
             .then(resp => resp.json())
@@ -98,6 +147,34 @@ async function getMatches(props, startNum) {
             </div>
         </div>
     }
+
+    console.log("won vs: " + winsVs);
+    console.log("lost vs: " + lossVs);
+    //object with champion ids and wins/losses vs them
+    let winsCount = {};
+    let lossCount = {};
+
+    winsVs.forEach(function(i) { winsCount[i] = (winsCount[i] || 0) + 1;});
+    lossVs.forEach(function(i) { lossCount[i] = (lossCount[i] || 0) + 1;});
+
+    console.log(winsCount);
+    console.log(lossCount);
+
+    //get champion id (property name) and number of games vs (value)
+    let lossKeys = Object.keys(lossCount);
+    let mostLosses = 0;
+    let mostLossKey;
+    for(let i=0; i<Object.keys(lossCount).length; i++) {
+        console.log("champion: " + lossKeys[i] + " losses against: " + lossCount[lossKeys[i]]);
+        if (lossCount[lossKeys[i]] > mostLosses) {
+            mostLosses = lossCount[lossKeys[i]];
+            mostLossKey = i;
+        } 
+    }
+
+    let mostLossChamp = await getChampName(lossKeys[mostLossKey]);
+
+    console.log("The most losses you have is against champion " + mostLossChamp + " with " + mostLosses + " losses");
 
     console.log(last10)
     return last10;

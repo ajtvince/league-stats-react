@@ -9,6 +9,12 @@ function SummonerPage(props) {
 
     return(
         <div className='summonerContainer'>
+            <div id="whoToBan">
+                <div>Worst win rate vs </div>
+                <div id="worstWinRate">champion name</div>
+                <div>Best win rate vs </div>
+                <div id="bestWinRate">champion name</div>
+            </div>
             <div id='profileInfo'>
                 <div id='profileIcon'>{props.summoner.profileIconId}</div>
                 <div id='summonerName'>{props.summoner.name}</div>
