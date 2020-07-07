@@ -1,37 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap');
+
 .summonerContainer {
     width:100%;
     max-width:1100px;
     margin:auto;
-    background-color:lightgray;
+    padding-top:48px;
+    padding-bottom:24px;
+    font-family: 'Oswald', sans-serif;
+    font-size:20px;
 }
 /*Profile Info*/
-#profileInfo {
+#profileContainer {
     border: 1px darkgray solid;
     border-radius: 1px;
-    width:300px;
+    max-width:600px;
+    width:100%;
     position: relative;
+    margin:auto;
+    margin-top:24px;
+}
+#profileInfo {
+    width:auto;
+    position:relative;
+    background-color:#111111;
+    color:white;
 }
 #profileIcon {
-    width:48px;
-    height:48px;
+    width:64px;
+    height:64px;
     background-color:darkgray;
+}
+#profileIcon img {
+    width:100%;
 }
 #summonerName {
     position:absolute;
-    left:52px;
+    left:68px;
     padding:4px;
     top:0px;
 }
 #summonerLevel {
     position:absolute;
-    left:52px;
+    left:68px;
     padding:4px;
     bottom:0px;
 }
-/*Match History*/
+.rankedQueueInfo {
+    position: relative;
+    width:50%;
+    display:inline-block;
+    padding:10px;
+    background-color:whitesmoke;
+}
+.rankedQueueInfo * {
+    font-size:18px;
+}
+.rankedQueueInfo img {
+    height:64px;
+    padding-top:6px;
+}
+.rankedQueueInfo .queueType {
+    position:absolute;
+    top:12px;
+    left:80px;
+}
+.rankedQueueInfo .queueRank {
+    position: absolute;
+    top:32px;
+    left:80px;
+}
+.rankedQueueInfo .queueWR {
+    position:absolute;
+    top:52px;
+    left:80px;
+}
+.rankedQueueInfo #unrankedQueue {
+    position:absolute;
+    top:-26px;
+    font-size:24px;
+    height:90px;
+}
+#unrankedQueueInfo {
+    background-color:white;
+}
+.unranked {
+    padding:12px;
+}
+#loadingContent {
+    text-align: center;
+}
+#loadingContent div:nth-child(1) {
+    font-size:48px;
+}
+/*Match History
 .matchHistoryContainer {
     width:600px;
     background-color:whitesmoke;
+    position: relative;
 }
 .matchMainContainer {
     opacity:1;
@@ -66,4 +131,48 @@
 }
 .playerContainer {
     height:24px;
+}
+*/
+.matchHistoryContainer {
+    max-width:600px;
+    width:100%;
+    position: relative;
+    margin:auto;
+    padding-top:16px;
+}
+.whoToBanContainer {
+    width:50%;
+    height:auto;
+    padding:12px;
+    display:inline-block;
+    vertical-align: top;
+}
+.whoToBanContainer div img {
+    width:100%;
+}
+.whoToBanContainer div {
+    display:block;
+}
+@media only screen and (max-width:420px) {
+    .whoToBanContainer {
+        width:100%;
+        padding-right:36px;
+        padding-left:36px;
+    }
+}
+@media only screen and (max-width:599px) {
+    .rankedQueueInfo {
+        width:100%;
+    }
+    #profileContainer {
+        width:90%;
+    }
+    #unrankedQueueInfo {
+        display:none;
+    }
+}
+@media only screen and (min-width:421px) and (max-width:599px) {
+    .matchHistoryContainer {
+        width:90%;
+    }
 }

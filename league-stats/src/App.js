@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Switch, Route, Link, useParams } from 'react-r
 import './App.css';
 import AccountPage from './components/Account';
 import Navigation from './components/Navigation';
+import HomePage from './components/Home';
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
     <Router>
     <Switch>
       <Route exact path="/">
-        <div>home</div>
+        <HomePage />
       </Route>
       <Route path="/na/:accountID">
         <AccountPage />

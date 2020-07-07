@@ -24,9 +24,9 @@ async function getMatches(props, startNum) {
     console.log('Get matches props: ' + props.matches[0].gameId);
 
     let url = 'https://na1.api.riotgames.com/lol/match/v4/matches/';
-    let url2 = 'https://na1.api.riotgames.com/lol/match/v4/timelines/by-match/';
+    //let url2 = 'https://na1.api.riotgames.com/lol/match/v4/timelines/by-match/';
 
-    let last10 = [];
+    //let last10 = [<div>test</div>];
 
     let matchData;
     let matchesWR = [];
@@ -35,7 +35,7 @@ async function getMatches(props, startNum) {
     let lossVs = [];
 
 
-    for(let i=0; i<25; i++) {
+    for(let i=0; i<50 ; i++) {
         await fetch(url + props.matches[i].gameId + apikey)
             .then(resp => resp.json())
             .then(data => {
@@ -43,7 +43,7 @@ async function getMatches(props, startNum) {
                 //console.log('Get matches: ' + data.teams[0].win);
         });
 
-
+        console.log(summoner_name);
         for(let i=0; i<10; i++) {
             //console.log(matchData.participantIdentities[i].player.summonerName);
             if (matchData.participantIdentities[i].player.summonerName === summoner_name) {
@@ -99,6 +99,7 @@ async function getMatches(props, startNum) {
         champKey += '_0.jpg';
         console.log(champKey);
         
+        /*
         last10[i] = <div className='matchContainer'>
             <div className='matchMainContainer'>
                 <img src={champSplashURL + champKey}></img>
@@ -146,7 +147,15 @@ async function getMatches(props, startNum) {
                 </div>
             </div>
         </div>
+        */
     }
+
+    let champPicURL = '/images/champions/splash/';
+    let champPicKey = '_0.jpg';
+
+    let whoToBan = [];
+    let whoToBanTieW = [];
+    let whoToBanTieL = [];
 
     console.log("won vs: " + winsVs);
     console.log("lost vs: " + lossVs);
@@ -160,24 +169,103 @@ async function getMatches(props, startNum) {
     console.log(winsCount);
     console.log(lossCount);
 
-    //get champion id (property name) and number of games vs (value)
+    //get champion id (property name) and number of games lossed vs (value)
     let lossKeys = Object.keys(lossCount);
     let mostLosses = 0;
-    let mostLossKey;
+    let mostLossKey = [];
+    let lossKeyCount = 0;
     for(let i=0; i<Object.keys(lossCount).length; i++) {
         console.log("champion: " + lossKeys[i] + " losses against: " + lossCount[lossKeys[i]]);
         if (lossCount[lossKeys[i]] > mostLosses) {
             mostLosses = lossCount[lossKeys[i]];
-            mostLossKey = i;
-        } 
+            lossKeyCount = 0;
+            mostLossKey = [];
+            mostLossKey[lossKeyCount] = i;
+        } else if (lossCount[lossKeys[i]] === mostLosses) {
+            lossKeyCount++;
+            mostLossKey[lossKeyCount] = i;
+        }
     }
 
-    let mostLossChamp = await getChampName(lossKeys[mostLossKey]);
+    //get champion id (property name) and number of games won vs (value)
+    let winKeys = Object.keys(winsCount);
+    let mostWins = 0;
+    let mostWinKey = [];
+    let winKeyCount = 0;
+    for(let i=0; i<Object.keys(winsCount).length; i++) {
+        console.log("champion: " + winKeys[i] + " wins against: " + winsCount[winKeys[i]]);
+        if (winsCount[winKeys[i]] > mostWins) {
+            mostWins = winsCount[winKeys[i]];
+            winKeyCount = 0;
+            mostWinKey = [];
+            mostWinKey[winKeyCount] = i;
+        } else if (winsCount[winKeys[i]] === mostWins) {
+            winKeyCount++;
+            mostWinKey[winKeyCount] = i;
+        }
+    }
 
-    console.log("The most losses you have is against champion " + mostLossChamp + " with " + mostLosses + " losses");
+    let mostWinChamp = "";
+    let mostLossChamp = "";
 
-    console.log(last10)
-    return last10;
+    if (mostLossKey.length === 1) {
+        mostLossChamp = await getChampName(lossKeys[mostLossKey[0]]);
+        console.log("The most losses you have is against " + mostLossChamp + " with " + mostLosses + " losses");
+        let winsRecord = 0;
+        if (winsCount[lossKeys[mostLossKey[0]]] > 0) {
+            winsRecord = winsCount[lossKeys[mostLossKey[0]]];
+        }
+        whoToBan[0] = <div class="whoToBanContainer"><div><img src={champPicURL + mostLossChamp + champPicKey}></img></div><div><p>You might want to ban {mostLossChamp}.</p><p>You're most losses is vs them ({mostLosses}).</p><p>You're record vs them is {winsRecord}-{mostLosses} ({(winsRecord / (mostLosses +  winsRecord) * 100).toFixed(2)}%).</p> </div></div>;
+    } else {
+        for (let i=0; i<mostLossKey.length; i++) {
+            mostLossChamp = await getChampName(lossKeys[mostLossKey[i]]);
+            let winsRecord = 0;
+            if (winsCount[lossKeys[mostLossKey[i]]] > 0) {
+                winsRecord = winsCount[lossKeys[mostLossKey[i]]];
+            }
+            whoToBanTieL[i] = <div class="whoToBanContainer"><div><img src={champPicURL + mostLossChamp + champPicKey}></img></div><div><p>You might want to ban {mostLossChamp}.</p><p>You're tied for most losses vs them ({mostLosses}).</p><p>You're record vs them is {winsRecord}-{mostLosses} ({(winsRecord / (mostLosses +  winsRecord) * 100).toFixed(2)}%).</p> </div></div>;
+        }
+        //mostLossChamp = mostLossChamp.slice(0, -2);
+        console.log("The most losses you have is against " + mostLossChamp + " with " + mostLosses + " losses each");
+        whoToBan[0] = whoToBanTieL;
+    }
+ 
+ 
+    if (mostWinKey.length === 1) {
+        mostWinChamp = await getChampName(winKeys[mostWinKey[0]]);
+        console.log("The most wins you have is against " + mostWinChamp + " with " + mostWins + " wins");
+        let lossRecord = 0;
+        if (lossCount[winKeys[mostWinKey[0]]] > 0) {
+            lossRecord = lossCount[winKeys[mostWinKey[0]]];
+        }
+        whoToBan[1] = <div class="whoToBanContainer"><div><img src={champPicURL + mostWinChamp + champPicKey}></img></div><div><p>You're good against {mostWinChamp}.</p><p>You're most wins is vs them ({mostWins}).</p><p>You're record vs them is {mostWins}-{lossRecord} ({(mostWins / (mostWins +  lossRecord) * 100).toFixed(2)}%).</p> </div></div>;
+    } else {
+        for (let i=0; i<mostWinKey.length; i++) {
+        mostWinChamp = await getChampName(winKeys[mostWinKey[i]]);
+        let lossRecord = 0;
+        if (lossCount[winKeys[mostWinKey[i]]] > 0) {
+            lossRecord = lossCount[winKeys[mostWinKey[i]]];
+        }
+        let goodOrBadVs = "good";
+        if (.5 >= (mostWins / (mostWins + lossRecord)) >= .3 ) {
+            goodOrBadVs = "okay";
+        } else if ((mostWins / (mostWins + lossRecord)) < .3 ) {
+            goodOrBadVs = "bad";
+        }
+    whoToBanTieW[i] = <div class="whoToBanContainer"><div><img src={champPicURL + mostWinChamp + champPicKey}></img></div><div><p>You're {goodOrBadVs} against {mostWinChamp}.</p><p>You're tied for most wins vs them ({mostWins}).</p><p>You're record vs them is {mostWins}-{lossRecord} ({(mostWins / (mostWins +  lossRecord) * 100).toFixed(2)}%).</p> </div></div>;
+        }
+
+        //mostWinChamp = mostWinChamp.slice(0, -2);
+        console.log("The most wins you have is against " + mostWinChamp + " with " + mostWins + " wins each");
+        whoToBan[1] = whoToBanTieW;
+    }
+
+
+    console.log(champPicURL + mostWinChamp + champPicKey);
+
+
+    console.log(whoToBan)
+    return whoToBan;
 
 }
 
@@ -222,16 +310,110 @@ async function getSummonerInfo(id) {
     console.log(Object.keys(account))
     console.log(account);
 
-    if (Object.keys(account).length == 1 ) {
+    if (Object.keys(account).length === 1 ) {
         console.log(Object.keys(account))
     } else { 
         console.log(account);
+        let rankedInfo = await getRankedInfo(account.id);
+        summoner_name=account.name;
         let match = await getMatchHistory(account.accountId);
-        let loadingContent = <div>Loading...</div>
-        ReactDOM.render(<SummonerPage summoner={account} history={match} last10={loadingContent}/>, document.getElementById('root'));
+        let loadingContent = <div id="loadingContent"><div>Loading...</div><div>Please do not refresh this page. The more games you have played this season, the longer it will take to load your matches.</div></div>
+        ReactDOM.render(<SummonerPage summoner={account} ranked={rankedInfo} history={match} whoToBan={loadingContent}/>, document.getElementById('root'));
         let matches = await getMatches(match);
-        ReactDOM.render(<SummonerPage summoner={account} history={match} last10={matches}/>, document.getElementById('root'));
+        ReactDOM.render(<SummonerPage summoner={account} ranked={rankedInfo} history={match} whoToBan={matches}/>, document.getElementById('root'));
     }
+
+
+}
+
+
+async function getRankedInfo(id) {
+    let summonerId = id;
+    let url = "https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + summonerId + apikey;
+
+    let rankedAccount;
+
+    await fetch(url)
+        .then(resp => resp.json())
+        .then(data => {
+            rankedAccount = data;
+            console.log(data);
+        });
+
+    let returnArray = [];
+    let rankedIconURL = "/images/rankedIcon/Emblem_";
+
+    if (rankedAccount.length === 0) {
+        returnArray[0] = <div class="unranked">Unranked in Solo/Duo and Flex</div>
+
+
+        return returnArray;
+    }
+
+    if (rankedAccount.length > 1) {
+        console.log("account length > 1");
+        if (rankedAccount[0].queueType === "RANKED_SOLO_5x5") {
+            console.log("queue type 1 is solo");
+            let queueTypeSolo = "SOLO/DUO";
+            let queueTypeFlex = "FLEX";
+
+            returnArray[0] = <div class="rankedQueueInfo">
+                <img src={rankedIconURL + rankedAccount[0].tier + ".png"}></img>
+                <div class="queueType">{queueTypeSolo}</div>
+                <div class="queueRank">{rankedAccount[0].tier} {rankedAccount[0].rank} ({rankedAccount[0].leaguePoints} LP)</div>
+                <div class="queueWR">{rankedAccount[0].wins} - {rankedAccount[0].losses} ({(rankedAccount[0].wins / (rankedAccount[0].wins + rankedAccount[0].losses)  * 100).toFixed(2)}%)</div>
+                </div>
+
+            returnArray[1] = <div class="rankedQueueInfo">
+            <img src={rankedIconURL + rankedAccount[1].tier + ".png"}></img>
+            <div class="queueType">{queueTypeFlex}</div>
+            <div class="queueRank">{rankedAccount[1].tier} {rankedAccount[1].rank} ({rankedAccount[1].leaguePoints} LP)</div>
+            <div class="queueWR">{rankedAccount[1].wins} - {rankedAccount[1].losses} ({(rankedAccount[1].wins / (rankedAccount[1].wins + rankedAccount[1].losses)  * 100).toFixed(2)}%)</div>
+            </div>
+
+        } else {
+            console.log("queue type 2 is solo");
+
+            let queueTypeSolo = "SOLO/DUO";
+            let queueTypeFlex = "FLEX";
+    
+            returnArray[0] = <div class="rankedQueueInfo">
+                <img src={rankedIconURL + rankedAccount[1].tier + ".png"}></img>
+                <div class="queueType">{queueTypeSolo}</div>
+                <div class="queueRank">{rankedAccount[1].tier} {rankedAccount[1].rank} ({rankedAccount[1].leaguePoints} LP)</div>
+                <div class="queueWR">{rankedAccount[1].wins} - {rankedAccount[1].losses} ({(rankedAccount[1].wins / (rankedAccount[1].wins + rankedAccount[1].losses) * 100).toFixed(2)}%)</div>
+                </div>
+
+            returnArray[1] = <div class="rankedQueueInfo">
+                <img src={rankedIconURL + rankedAccount[0].tier + ".png"}></img>
+                <div class="queueType">{queueTypeFlex}</div>
+                <div class="queueRank">{rankedAccount[0].tier} {rankedAccount[0].rank} ({rankedAccount[0].leaguePoints} LP)</div>
+                <div class="queueWR">{rankedAccount[0].wins} - {rankedAccount[0].losses} ({(rankedAccount[0].wins / (rankedAccount[0].wins + rankedAccount[0].losses) * 100).toFixed(2)}%)</div>
+                </div>
+        }
+    } else {
+        console.log("only 1 queue type");
+
+        let queueType;
+        let queueType2;
+        if (rankedAccount[0].queueType === "RANKED_SOLO_5x5") {
+            queueType = "SOLO/DUO";
+            queueType2 = "FLEX";
+        } else {
+            queueType = "FLEX";
+            queueType2 = "SOLO/DUO";
+        }
+        returnArray[0] = <div class="rankedQueueInfo">
+            <img src={rankedIconURL + rankedAccount[0].tier + ".png"}></img>
+            <div class="queueType">{queueType}</div>
+            <div class="queueRank">{rankedAccount[0].tier} {rankedAccount[0].rank} ({rankedAccount[0].leaguePoints} LP)</div>
+            <div class="queueWR">{rankedAccount[0].wins} - {rankedAccount[0].losses} ({(rankedAccount[0].wins / (rankedAccount[0].wins + rankedAccount[0].losses) * 100).toFixed(2)}%)</div>
+            </div>
+        returnArray[1] = <div class="rankedQueueInfo" id="unrankedQueueInfo"><div id="unrankedQueue">Unranked in {queueType2}</div></div>
+    }
+
+
+    return returnArray;
 
 
 }
@@ -251,7 +433,7 @@ async function getMatchHistory(id) {
             console.log(data);
     });
  
-    if (Object.keys(match).length == 1 ) {
+    if (Object.keys(match).length === 1 ) {
         console.log(Object.keys(match));
         return null;
     } else { 
